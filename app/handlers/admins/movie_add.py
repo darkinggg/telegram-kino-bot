@@ -1,6 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.filters import StateFilter  # Yangi qo'shildi
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.filters import AdminFilter
 from app.services import MovieService
@@ -143,7 +144,18 @@ async def add_movie_description(message: Message, state: FSMContext, session: As
         await message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
         await state.clear()
 
-@router.message(F.text == "❌ Bekor qilish", AdminStates.waiting_for_movie_title | AdminStates.waiting_for_movie_director | AdminStates.waiting_for_movie_year | AdminStates.waiting_for_movie_category | AdminStates.waiting_for_movie_description, AdminFilter())
+# Bu yerda | operatori o'rniga StateFilter ishlatildi:
+@router.message(
+    F.text == "❌ Bekor qilish", 
+    StateFilter(
+        AdminStates.waiting_for_movie_title, 
+        AdminStates.waiting_for_movie_director, 
+        AdminStates.waiting_for_movie_year, 
+        AdminStates.waiting_for_movie_category, 
+        AdminStates.waiting_for_movie_description
+    ), 
+    AdminFilter()
+)
 async def cancel_add_movie(message: Message, state: FSMContext):
     """Kino qo'shishni bekor qilish"""
     try:
